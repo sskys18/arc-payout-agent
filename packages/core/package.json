@@ -1,0 +1,29 @@
+{
+  "name": "@arc/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Arc testnet primitives: amount math, cadence/due dates, idempotency keys, append-only ledger, tx engine, arcscan URLs, and signer abstractions. Consumed as a git submodule by the payout and FX agents.",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./amounts": "./src/amounts.ts",
+    "./cadence": "./src/cadence.ts",
+    "./arcscan": "./src/arcscan.ts",
+    "./idempotency": "./src/idempotency.ts",
+    "./ledger": "./src/ledger.ts",
+    "./txEngine": "./src/txEngine.ts",
+    "./circle": "./src/circle.ts"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
