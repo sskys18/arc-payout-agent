@@ -1,0 +1,26 @@
+{
+  "name": "@arc/payout",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Payout domain for the Arc recurring USDC contractor agent: contractor store, due planner, and the single-owner idempotent runner. Built on @arc/core primitives.",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./store": "./src/store.ts",
+    "./agent": "./src/agent.ts",
+    "./receipts": "./src/receipts.ts"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arc/core": "*",
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -3,16 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Recurring USDC contractor payout agent on Arc testnet — deterministic planner, single-owner runner, append-only ledger, plus a Next.js operator dashboard.",
+  "description": "Recurring USDC contractor payout agent on Arc testnet \u2014 deterministic planner, single-owner runner, append-only ledger, plus a Next.js operator dashboard.",
   "workspaces": [
     "packages/*",
     "app"
   ],
   "scripts": {
-    "test": "npm --prefix packages/core test",
+    "test": "npm --prefix packages/core test && npm --prefix packages/payout test",
     "build:core": "npm --prefix packages/core run build",
     "dev": "npm run dev -w app",
     "build": "npm run build -w app",
-    "start": "npm run start -w app"
+    "start": "npm run start -w app",
+    "build:payout": "npm --prefix packages/payout run build"
   }
 }

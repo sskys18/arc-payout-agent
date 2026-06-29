@@ -6,8 +6,8 @@
 // one of the two supported recurrences. Invalid input throws — we never store junk.
 import { randomUUID } from 'node:crypto';
 import { ethers } from 'ethers';
-import { assertPositiveAmount } from '../amounts.ts';
-import type { Cadence } from '../cadence.ts';
+import { assertPositiveAmount } from '@arc/core/amounts';
+import type { Cadence } from '@arc/core/cadence';
 
 export type Contractor = {
   id: string;
