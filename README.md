@@ -6,8 +6,7 @@ contractor exactly once, and an append-only ledger that records what happened. A
 Next.js dashboard sits on top for operators.
 
 Shared primitives (amounts, cadence, idempotency, ledger, tx engine, arcscan URLs,
-signer abstraction) live in `@arc/core`, which this repo pulls in as a git submodule
-at `packages/core`. The payout domain itself (contractor store, planner, runner) is
+signer abstraction) live in `@arc/core`, vendored into this repo at `packages/core`. The payout domain itself (contractor store, planner, runner) is
 in the local `@arc/payout` package. The `app` workspace is the UI.
 
 The dashboard runs locally with no secrets. With no Circle or RPC credentials set it
@@ -33,18 +32,16 @@ Circle API key.
 
 Requirements: Node 22, npm 10.
 
-Clone with submodules so `packages/core` is populated:
+Clone and install:
 
 ```bash
-git clone --recursive https://github.com/sskys18/arc-payout-agent.git
-# already cloned without --recursive?
-git submodule update --init --recursive
+git clone https://github.com/sskys18/arc-payout-agent.git
 ```
 
 Then:
 
 ```bash
-npm install          # installs all workspaces (core submodule + payout + dashboard)
+npm install          # installs all workspaces (core + payout + dashboard)
 npm run dev          # starts the Next.js dashboard (the `app` workspace)
 ```
 
@@ -94,7 +91,7 @@ and no funding is needed.
 
 ## Deploy to Vercel
 
-1. Make sure the repo (and its `arc-core` submodule) is reachable by the deploy.
+1. Push the repo to GitHub so the deploy can fetch it.
 2. In Vercel, New Project, import the repo.
 3. Set the Root Directory to `app`.
 4. Build command `next build`; output is handled automatically.
@@ -143,7 +140,7 @@ See [`docs/demo-script.md`](docs/demo-script.md) for the narrated version.
 
 ```
 arc-payout-agent/
-  packages/core/      @arc/core, a git submodule of sskys18/arc-core (33 primitive tests)
+  packages/core/      @arc/core, vendored shared primitives (33 tests)
   packages/payout/    @arc/payout, the payout domain: store, planner, runner (10 tests)
   app/                Next.js (App Router, TS) dashboard
   docs/               demo script and production path

@@ -8,7 +8,7 @@ submission decision. They were intentionally left for a human.
 
 ## What's built
 
-- `@arc/core` (git submodule at `packages/core`, from `sskys18/arc-core`): cadence/due
+- `@arc/core` (`packages/core`, shared primitives vendored in): cadence/due
   planner inputs, USDC amount normalization, append-only ledger with durable terminal
   markers, idempotency keys, arcscan URL builder, ethers Arc tx engine, and the Circle
   Wallets interface with a labeled EOA fallback. 33 tests.
@@ -56,7 +56,7 @@ Circle Wallets), then the path to production (CCTP, Gateway, pay-in-AED).
 ## Run locally now
 
 ```
-git clone --recursive https://github.com/sskys18/arc-payout-agent.git
+git clone https://github.com/sskys18/arc-payout-agent.git
 cd arc-payout-agent
 npm install && npm run dev
 # open the printed localhost URL; click "Run due now"
