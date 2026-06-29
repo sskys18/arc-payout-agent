@@ -1,65 +1,76 @@
 # arc-payout-agent
 
-Recurring **USDC contractor payouts on Arc testnet** — a deterministic-planner +
-single-owner-runner + append-only-ledger agent, wrapped in a Next.js operator
-dashboard. The reusable `@arc/core` package provides amounts, cadence, idempotency,
-ledger, tx engine, and signer abstractions; the `app` workspace is the UI.
+Recurring USDC contractor payouts on Arc testnet. The agent has three parts: a
+deterministic planner that decides who is due, a single-owner runner that pays each
+contractor exactly once, and an append-only ledger that records what happened. A
+Next.js dashboard sits on top for operators.
 
-The dashboard runs **locally with zero secrets**: with no Circle/RPC credentials it
-selects a deterministic **mock signer** (fake-but-valid tx hashes, instantly
-"confirmed") so the full add → run → receipt → Arcscan-link flow works without a
-live Arc RPC or Circle API key.
+Shared primitives (amounts, cadence, idempotency, ledger, tx engine, arcscan URLs,
+signer abstraction) live in `@arc/core`, which this repo pulls in as a git submodule
+at `packages/core`. The payout domain itself (contractor store, planner, runner) is
+in the local `@arc/payout` package. The `app` workspace is the UI.
 
----
+The dashboard runs locally with no secrets. With no Circle or RPC credentials set it
+picks a mock signer that returns valid-looking, instantly-confirmed tx hashes, so the
+whole add -> run -> receipt -> Arcscan-link flow works without a live Arc RPC or a
+Circle API key.
 
 ## What it does
 
-- **Wallet status** — payout address (from the signer), chain (Arc Testnet,
-  chainId 5042002), USDC balance (mock value in demo mode), faucet link.
-- **Contractors** — add / edit / deactivate / reactivate. Strict validation
-  (real EVM address, positive USDC amount, `weekly`|`monthly` cadence); bad input
-  returns HTTP 400.
-- **Upcoming run** — the deterministically planned set of due contractors and the
-  total USDC about to be sent.
-- **Run due now** — single-owner runner: plans the due payouts, submits-and-confirms
-  each exactly once (terminal markers + write-ahead submit markers make double-pay
-  impossible), writes the append-only ledger.
-- **Payout history** — every payout reconstructed from the ledger: name, amount,
-  memo, status, tx hash, and an **Arcscan explorer link**
-  (`https://testnet.arcscan.app/tx/<hash>`).
+- Wallet status: payout address (from the signer), chain (Arc testnet, chainId
+  5042002), USDC balance (a mock value in demo mode), and a faucet link.
+- Contractors: add, edit, deactivate, reactivate. Input is validated (a real EVM
+  address, a positive USDC amount, a `weekly` or `monthly` cadence); bad input returns
+  HTTP 400.
+- Upcoming run: the planned set of due contractors and the total USDC about to go out.
+- Run due now: the single-owner runner plans the due payouts and submits-and-confirms
+  each one exactly once. Write-ahead submit markers plus terminal markers make a
+  double-pay impossible, and every step is written to the ledger.
+- Payout history: each payout rebuilt from the ledger with name, amount, memo, status,
+  tx hash, and an Arcscan link (`https://testnet.arcscan.app/tx/<hash>`).
 
 ## Local setup
 
 Requirements: Node 22, npm 10.
 
+Clone with submodules so `packages/core` is populated:
+
 ```bash
-npm install          # installs all workspaces (core + dashboard)
-npm run dev          # starts the Next.js dashboard (delegates to the `app` workspace)
+git clone --recursive https://github.com/sskys18/arc-payout-agent.git
+# already cloned without --recursive?
+git submodule update --init --recursive
 ```
 
-Open the printed URL (default **http://localhost:3000**). To use a different port:
+Then:
+
+```bash
+npm install          # installs all workspaces (core submodule + payout + dashboard)
+npm run dev          # starts the Next.js dashboard (the `app` workspace)
+```
+
+Open the printed URL (default http://localhost:3000). For a different port:
 
 ```bash
 npm run dev -w app -- -p 4311      # http://localhost:4311
 ```
 
-Production build / serve:
+Production build and serve:
 
 ```bash
 npm run build        # next build
-npm run start        # next start  (serves the production build)
+npm run start        # next start
 ```
 
-Core unit tests (unchanged by the dashboard):
+Unit tests:
 
 ```bash
-npm test             # 43 @arc/core tests via node --test
+npm test             # 43 tests: 33 @arc/core + 10 @arc/payout, via node --test
 ```
 
 ## Environment variables
 
-Copy `.env.example` to `.env` only if you want to run against the real testnet.
-**With no variables set, the app uses the mock signer and makes no network calls.**
+Copy `.env.example` to `.env` only if you want to run against the real testnet. With
+no variables set the app uses the mock signer and makes no network calls.
 
 | Variable           | Purpose                                                              |
 | ------------------ | ------------------------------------------------------------------- |
@@ -71,70 +82,70 @@ Copy `.env.example` to `.env` only if you want to run against the real testnet.
 | `DATABASE_URL`     | Durable storage if you replace the in-memory store/ledger.          |
 | `ADMIN_SECRET`     | Shared secret to gate mutation routes in a real deployment.         |
 
-Signer selection: `CIRCLE_API_KEY` → Circle; else `EOA_PRIVATE_KEY` → EOA fallback;
-else → **mock**.
+Signer selection: `CIRCLE_API_KEY` picks Circle; otherwise `EOA_PRIVATE_KEY` picks the
+EOA fallback; otherwise the mock signer.
 
 ## Funding via faucet
 
-For a real run, fund the payout wallet with **testnet USDC** from the
+For a real run, fund the payout wallet with testnet USDC from the
 [Circle faucet](https://faucet.circle.com), then set `CIRCLE_API_KEY` (or
-`EOA_PRIVATE_KEY`) and `USDC_ADDRESS`. In mock mode the balance is a fixed demo
-number and no funding is needed.
+`EOA_PRIVATE_KEY`) and `USDC_ADDRESS`. In mock mode the balance is a fixed demo number
+and no funding is needed.
 
 ## Deploy to Vercel
 
-1. Push this repo to GitHub.
-2. In Vercel, **New Project** → import the repo.
-3. Set the **Root Directory** to `app` (the Next.js project).
-4. Build command `next build`, output handled automatically.
+1. Make sure the repo (and its `arc-core` submodule) is reachable by the deploy.
+2. In Vercel, New Project, import the repo.
+3. Set the Root Directory to `app`.
+4. Build command `next build`; output is handled automatically.
 5. Add env vars from `.env.example` as needed (omit them to keep mock mode).
 6. Deploy.
 
-> The demo uses an in-memory store/ledger, so state resets on each cold start /
-> serverless instance — fine for a demo, see *Path to production* below for durable
-> storage.
+The demo uses an in-memory store and ledger, so state resets on each cold start. That
+is fine for a demo; see the production path below for durable storage.
 
 ## 3-minute demo flow
 
-1. **Wallet status** card shows the payout address, Arc Testnet (5042002), a USDC
-   balance, and a faucet link — `MOCK SIGNER` badge confirms zero-secret mode.
-2. **Contractors** are pre-seeded (Ava Stone — 500 weekly; Liang Wei — 1200 monthly),
-   both due now. Add another contractor live to show validation.
-3. **Upcoming run** shows 2 due, total 1700 USDC.
-4. Click **Run due now** → two confirmed receipts appear.
-5. **Payout history** now lists each payout with status `confirmed`, tx hash, and an
-   **Arcscan ↗** link that opens `https://testnet.arcscan.app/tx/<hash>`.
-6. Click **Run due now** again → nothing re-pays (idempotent: terminal markers).
+1. The Wallet status card shows the payout address, Arc testnet (5042002), a USDC
+   balance, and a faucet link. A `MOCK SIGNER` badge confirms zero-secret mode.
+2. Contractors are pre-seeded (Ava Stone, 500 weekly; Liang Wei, 1200 monthly), both
+   due now. Add another contractor live to show validation.
+3. Upcoming run shows 2 due, total 1700 USDC.
+4. Click Run due now. Two confirmed receipts appear.
+5. Payout history lists each payout with status `confirmed`, a tx hash, and an Arcscan
+   link to `https://testnet.arcscan.app/tx/<hash>`.
+6. Click Run due now again. Nothing re-pays, because the terminal markers short-circuit.
 
-See [`docs/demo-script.md`](docs/demo-script.md) for the narrated beat sheet.
+See [`docs/demo-script.md`](docs/demo-script.md) for the narrated version.
 
-## Circle / Arc tools used
+## Circle and Arc tools used
 
-- **Arc testnet** — chainId `5042002`, RPC `https://rpc.testnet.arc.network`,
-  explorer `https://testnet.arcscan.app`.
-- **Circle Programmable Wallets** — intended production custody (`makeSigner` →
+- Arc testnet: chainId `5042002`, RPC `https://rpc.testnet.arc.network`, explorer
+  `https://testnet.arcscan.app`.
+- Circle Programmable Wallets: the intended production custody (`makeSigner` returns
   `CircleWalletsSigner`), stubbed until API credentials are wired.
-- **EOA fallback signer** — local dev signer (`ethers` raw EOA) for real-chain dev.
-- **USDC** — 6-decimal ERC-20 transfers via `@arc/core` amount/tx primitives.
-- **Circle faucet** — testnet USDC funding.
+- EOA fallback signer: a local dev signer (raw `ethers` EOA) for real-chain dev work.
+- USDC: 6-decimal ERC-20 transfers via the `@arc/core` amount and tx primitives.
+- Circle faucet: testnet USDC funding.
 
 ## Accepted MVP limits
 
-- In-memory store + ledger (resets on restart); swap for `JsonFileLedger` /
+- In-memory store and ledger (reset on restart); swap for `JsonFileLedger` or
   `DATABASE_URL` for durability.
-- In-process lock (single Node process); a real multi-instance deployment needs a
+- In-process lock (single Node process); a multi-instance deployment needs a
   distributed lock.
-- Mock signer produces deterministic fake tx hashes — Arcscan links are well-formed
-  but resolve to nothing on mock data; use the real signer for on-chain txs.
-- Circle Wallets signer is a stub pending API credentials.
-- No auth on mutation routes (demo); gate with `ADMIN_SECRET` before real use.
+- The mock signer produces deterministic fake tx hashes, so Arcscan links are
+  well-formed but resolve to nothing on mock data. Use a real signer for on-chain txs.
+- The Circle Wallets signer is a stub pending API credentials.
+- No auth on mutation routes in the demo; gate with `ADMIN_SECRET` before real use.
 
 ## Layout
 
 ```
 arc-payout-agent/
-  packages/core/      @arc/core — payout engine (43 tests)
+  packages/core/      @arc/core, a git submodule of sskys18/arc-core (33 primitive tests)
+  packages/payout/    @arc/payout, the payout domain: store, planner, runner (10 tests)
   app/                Next.js (App Router, TS) dashboard
-  docs/               demo script + production path
+  docs/               demo script and production path
   .env.example        env template (placeholders only)
 ```
