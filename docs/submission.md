@@ -86,7 +86,7 @@ and document a canonical batch-payout pattern.
 
 ## Remaining steps (human-gated)
 
-1. Register on Encode (encodeclub.com, jcs25822@gmail.com); Ignyte account + Circle Developer Account if going for the Jul 13 track.
+1. ~~Register on Encode~~ DONE 2026-07-07 (Google OAuth). Ignyte join is reCAPTCHA-gated (human, ~1 min) + Circle Developer Account if going for the Jul 13 track.
 2. Circle Wallets API key (or dev EOA) + fund testnet USDC via faucet.circle.com (manual faucet policy).
 3. ~~Deploy to Vercel~~ DONE 2026-07-07: https://arc-payout-agent.vercel.app (mock mode).
 4. ~~Flip repo public~~ DONE 2026-07-07.
