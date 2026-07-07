@@ -24,7 +24,9 @@ need. Next.js operator dashboard; every payout links to Arcscan.
 faucet; Circle Wallets (production custody path via `makeSigner` →
 `CircleWalletsSigner`).
 
-**Repo:** https://github.com/sskys18/arc-payout-agent (private — flip public at submission)
+**Repo:** https://github.com/sskys18/arc-payout-agent (public)
+
+**Live demo (mock mode, deployed 2026-07-07):** https://arc-payout-agent.vercel.app — smoke-tested end-to-end after deploy.
 
 **Tests:** 43 passing (33 @arc/core + 10 @arc/payout), incl. crash-at-terminal-marker
 and pending-reconciliation double-pay proofs.
@@ -86,6 +88,6 @@ and document a canonical batch-payout pattern.
 
 1. Register on Encode (encodeclub.com, jcs25822@gmail.com); Ignyte account + Circle Developer Account if going for the Jul 13 track.
 2. Circle Wallets API key (or dev EOA) + fund testnet USDC via faucet.circle.com (manual faucet policy).
-3. Deploy to Vercel (root `app`); mock mode needs no env.
-4. Flip repo public.
+3. ~~Deploy to Vercel~~ DONE 2026-07-07: https://arc-payout-agent.vercel.app (mock mode).
+4. ~~Flip repo public~~ DONE 2026-07-07.
 5. Record the 3-minute video: add → run → receipt → rerun shows idempotency (nothing re-pays).
